@@ -9,6 +9,11 @@ from fastapi import APIRouter, File, HTTPException, UploadFile, status
 from app.core.config import settings
 from app.core.logger import get_logger
 
+from app.schemas import (
+    FlowerClassesResponse,
+    HealthResponse,
+    PredictionResponse,
+)
 router = APIRouter(tags=["FlowerVision AI"])
 
 logger = get_logger(__name__)
@@ -34,6 +39,7 @@ FLOWER_CLASSES = [
     "/health",
     summary="Health Check",
     response_description="Application health status",
+    response_model=HealthResponse,
 )
 async def health_check():
     """
@@ -56,6 +62,7 @@ async def health_check():
 @router.get(
     "/flowers",
     summary="Supported Flower Species",
+    response_model=FlowerClassesResponse,
 )
 async def get_supported_flowers():
     """
@@ -77,6 +84,7 @@ async def get_supported_flowers():
 @router.post(
     "/predict",
     summary="Predict Flower Species",
+    response_model=PredictionResponse,
 )
 async def predict_flower(
     file: UploadFile = File(...),
