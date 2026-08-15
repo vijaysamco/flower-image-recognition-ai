@@ -3,7 +3,7 @@ FlowerVision AI
 
 Main FastAPI Application
 
-Author: Bhavya
+Author: VIJAY
 License: MIT
 """
 
