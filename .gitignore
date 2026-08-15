@@ -1,1 +1,161 @@
+# ==========================================================
+# FlowerVision AI
+# .gitignore
+# ==========================================================
 
+# -------------------------
+# Python
+# -------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+
+# Virtual Environments
+.venv/
+venv/
+env/
+ENV/
+
+# Distribution
+build/
+dist/
+*.egg-info/
+
+# Python Tooling
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+.cache/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# -------------------------
+# Environment Variables
+# -------------------------
+.env
+.env.*
+!.env.example
+
+# -------------------------
+# Logs
+# -------------------------
+logs/
+*.log
+
+# -------------------------
+# SQLite
+# -------------------------
+*.db
+*.sqlite
+*.sqlite3
+
+# -------------------------
+# AI Models
+# -------------------------
+models/*.pth
+models/*.pt
+models/*.onnx
+models/*.ckpt
+models/*.weights
+
+# Keep models directory
+!models/.gitkeep
+
+# -------------------------
+# Uploads & Temporary Files
+# -------------------------
+uploads/
+temp/
+tmp/
+
+# Keep directories
+!uploads/.gitkeep
+
+# -------------------------
+# Images
+# -------------------------
+*.tif
+*.tiff
+
+# -------------------------
+# Node.js
+# -------------------------
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# React Build
+frontend/dist/
+frontend/.vite/
+
+# -------------------------
+# IDEs
+# -------------------------
+.vscode/
+.idea/
+
+# VS Code workspace
+*.code-workspace
+
+# -------------------------
+# Operating System
+# -------------------------
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# -------------------------
+# Docker
+# -------------------------
+docker-data/
+
+# -------------------------
+# Testing
+# -------------------------
+.pytest_cache/
+coverage.xml
+
+# -------------------------
+# Secrets
+# -------------------------
+*.pem
+*.key
+*.crt
+*.pfx
+
+# -------------------------
+# Backup Files
+# -------------------------
+*.bak
+*.old
+*.orig
+*.swp
+*.swo
+*~
+
+# -------------------------
+# Build Artifacts
+# -------------------------
+*.tar
+*.gz
+*.zip
+*.7z
+
+# -------------------------
+# Local Configuration
+# -------------------------
+local_settings.py
+
+# -------------------------
+# Miscellaneous
+# -------------------------
+*.tmp
+*.cache
