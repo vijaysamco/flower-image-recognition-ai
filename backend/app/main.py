@@ -92,7 +92,7 @@ async def root():
 # ------------------------------------------------------------------
 
 
-@app.get("/health", tags=["General"])
+@app.get("/api/v1/health", tags=["General"])
 async def health():
     """
     Health check endpoint.
