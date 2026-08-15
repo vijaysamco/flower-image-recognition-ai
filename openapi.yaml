@@ -1,1 +1,200 @@
+openapi: 3.1.0
 
+info:
+  title: FlowerVision AI API
+  version: 1.0.0
+  description: |
+    REST API for FlowerVision AI.
+
+    This API allows users to upload flower images,
+    classify the flower species using a pretrained
+    deep learning model, and retrieve prediction
+    confidence scores.
+
+  contact:
+    name: FlowerVision AI
+    url: https://github.com/your-github-username/flower-image-recognition-ai
+
+  license:
+    name: MIT
+
+servers:
+  - url: http://localhost:8000
+    description: Local Development Server
+
+tags:
+  - name: General
+  - name: Prediction
+
+paths:
+
+  /:
+    get:
+      tags:
+        - General
+      summary: API Status
+      operationId: getStatus
+      responses:
+        "200":
+          description: API is running.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusResponse"
+
+  /health:
+    get:
+      tags:
+        - General
+      summary: Health Check
+      operationId: healthCheck
+      responses:
+        "200":
+          description: Service health status.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+
+  /flowers:
+    get:
+      tags:
+        - General
+      summary: Supported Flower Species
+      operationId: getFlowerClasses
+      responses:
+        "200":
+          description: Supported flower classes.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  classes:
+                    type: array
+                    items:
+                      type: string
+                example:
+                  classes:
+                    - daisy
+                    - dandelion
+                    - rose
+                    - sunflower
+                    - tulip
+
+  /predict:
+    post:
+      tags:
+        - Prediction
+      summary: Predict Flower Species
+      operationId: predictFlower
+
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: Flower image.
+
+      responses:
+        "200":
+          description: Successful prediction.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PredictionResponse"
+
+        "400":
+          description: Invalid image upload.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+        "415":
+          description: Unsupported file type.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+        "500":
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+components:
+
+  schemas:
+
+    StatusResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: running
+
+        application:
+          type: string
+          example: FlowerVision AI
+
+        version:
+          type: string
+          example: 1.0.0
+
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          example: healthy
+
+        model_loaded:
+          type: boolean
+          example: true
+
+        uptime:
+          type: string
+          example: "2h 14m"
+
+    PredictionResponse:
+      type: object
+
+      properties:
+
+        filename:
+          type: string
+          example: sunflower.jpg
+
+        prediction:
+          type: string
+          example: sunflower
+
+        confidence:
+          type: number
+          format: float
+          example: 98.73
+
+        processing_time_ms:
+          type: number
+          example: 126
+
+    ErrorResponse:
+      type: object
+
+      properties:
+
+        detail:
+          type: string
+          example: Unsupported image format.
+
+security: []
