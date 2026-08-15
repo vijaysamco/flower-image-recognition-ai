@@ -1,0 +1,3 @@
+"""
+FlowerVision AI Backend Application
+"""
