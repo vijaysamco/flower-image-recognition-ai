@@ -1172,3 +1172,440 @@ The project is structured to help learners understand how AI models integrate in
 
 
 
+---
+
+# 🛠️ Troubleshooting
+
+This section covers common issues you may encounter during development and deployment.
+
+---
+
+## Backend Server Does Not Start
+
+### Possible Causes
+
+- Python version is not supported
+- Virtual environment is not activated
+- Dependencies are missing
+- Port is already in use
+
+### Solution
+
+Check your Python version.
+
+```bash
+python --version
+```
+
+Activate the virtual environment.
+
+```bash
+source .venv/bin/activate
+```
+
+Install dependencies.
+
+```bash
+pip install -r requirements.txt
+```
+
+Run the backend.
+
+```bash
+uvicorn app.main:app --reload
+```
+
+---
+
+## Frontend Fails to Start
+
+### Solution
+
+Install packages again.
+
+```bash
+npm install
+```
+
+Run development server.
+
+```bash
+npm run dev
+```
+
+---
+
+## Model Not Found
+
+The configured model path is incorrect.
+
+Check
+
+```
+backend/models/
+```
+
+Ensure the model exists.
+
+Example
+
+```
+mobilenet_v3_flowers.pth
+```
+
+---
+
+## Image Upload Errors
+
+Possible reasons
+
+- Unsupported image format
+- File exceeds size limit
+- Corrupted image
+
+Supported formats
+
+- JPG
+- JPEG
+- PNG
+- WEBP
+
+---
+
+## Docker Build Issues
+
+Clean Docker cache.
+
+```bash
+docker system prune -a
+```
+
+Rebuild
+
+```bash
+docker compose build
+```
+
+---
+
+# ⚡ Performance Optimization
+
+The application is optimized for low-resource environments.
+
+## Current Optimizations
+
+- Lightweight MobileNet architecture
+- Image resizing before inference
+- Efficient preprocessing pipeline
+- FastAPI asynchronous endpoints
+- Lazy model loading
+- Reusable API clients
+- Optimized Docker image
+- Dependency caching
+
+---
+
+## Future Optimizations
+
+- ONNX Runtime
+- TorchScript
+- GPU acceleration
+- Request batching
+- Redis caching
+- CDN support
+- Image compression
+- Background task queue
+
+---
+
+# 📊 Performance Targets
+
+| Metric | Target |
+|----------|---------|
+| API Response Time | < 500 ms |
+| Prediction Time | < 300 ms |
+| Startup Time | < 5 sec |
+| Docker Startup | < 10 sec |
+| Image Upload | < 2 sec |
+| Memory Usage | < 500 MB |
+
+---
+
+# 📈 Monitoring
+
+The application includes basic monitoring features.
+
+Current metrics
+
+- API uptime
+- Request count
+- Error count
+- Prediction latency
+- Model loading time
+
+Future improvements
+
+- Prometheus
+- Grafana
+- OpenTelemetry
+- Distributed tracing
+
+---
+
+# 📝 Logging
+
+Structured logging is implemented throughout the backend.
+
+Log Levels
+
+```
+DEBUG
+
+INFO
+
+WARNING
+
+ERROR
+
+CRITICAL
+```
+
+Example
+
+```
+2026-08-15 10:32:18 INFO Image uploaded successfully
+
+2026-08-15 10:32:19 INFO Prediction completed
+
+2026-08-15 10:32:19 INFO Confidence: 97.42%
+```
+
+---
+
+# ♿ Accessibility
+
+FlowerVision AI aims to provide an inclusive experience.
+
+Accessibility features include
+
+- Keyboard navigation
+- Responsive layout
+- High contrast support
+- Semantic HTML
+- Accessible forms
+- Screen reader friendly labels
+- Alternative text for images
+
+Future releases will continue improving accessibility.
+
+---
+
+# 🌐 Browser Support
+
+| Browser | Supported |
+|-----------|-----------|
+| Chrome | ✅ |
+| Edge | ✅ |
+| Firefox | ✅ |
+| Safari | ✅ |
+
+Latest versions are recommended.
+
+---
+
+# 📦 Dependency Management
+
+Backend
+
+```
+requirements.txt
+```
+
+Frontend
+
+```
+package.json
+```
+
+Dependencies should be updated regularly.
+
+Always verify compatibility before upgrading major versions.
+
+---
+
+# 🔄 Versioning
+
+This project follows Semantic Versioning.
+
+Example
+
+```
+v1.0.0
+```
+
+Meaning
+
+```
+Major.Minor.Patch
+```
+
+Example
+
+```
+1.0.0
+
+1.1.0
+
+1.1.2
+
+2.0.0
+```
+
+---
+
+# 🚀 Release Process
+
+Each release follows a consistent workflow.
+
+```
+Development
+
+↓
+
+Testing
+
+↓
+
+Code Review
+
+↓
+
+Documentation Update
+
+↓
+
+Release Candidate
+
+↓
+
+Final Release
+
+↓
+
+GitHub Tag
+
+↓
+
+Production Deployment
+```
+
+---
+
+# 📅 Planned Release Timeline
+
+| Version | Planned Features |
+|-----------|-----------------|
+| v1.0 | Flower Classification |
+| v1.1 | Prediction History |
+| v1.2 | Improved UI |
+| v2.0 | Multi-Flower Detection |
+| v3.0 | Mobile Application |
+
+---
+
+# 🔍 Code Review Checklist
+
+Every Pull Request should verify:
+
+- [ ] Code compiles successfully
+- [ ] Tests pass
+- [ ] Documentation updated
+- [ ] No secrets committed
+- [ ] Formatting completed
+- [ ] Linting passes
+- [ ] Feature manually tested
+- [ ] Error handling included
+
+---
+
+# 🧩 Design Principles
+
+The project follows these engineering principles:
+
+- Simplicity
+- Readability
+- Scalability
+- Maintainability
+- Reusability
+- Testability
+- Security by default
+- Documentation-first development
+
+---
+
+# 📚 Learning Outcomes
+
+By exploring this repository, developers can learn:
+
+- Building AI-powered web applications
+- FastAPI backend development
+- React frontend development
+- Deep learning inference
+- Image preprocessing
+- Docker fundamentals
+- REST API design
+- OpenAPI documentation
+- GitHub Actions CI/CD
+- Production-ready project organization
+
+---
+
+# 💼 Portfolio Value
+
+FlowerVision AI demonstrates practical skills in:
+
+- Artificial Intelligence
+- Computer Vision
+- Python
+- FastAPI
+- React
+- REST APIs
+- Docker
+- Software Architecture
+- GitHub Workflows
+- Technical Documentation
+- Clean Code
+- Testing
+
+These are highly relevant for AI engineering and full-stack development portfolios.
+
+---
+
+**📌 End of README Part 3B**
+
+➡️ **Next:** **Part 3C (Final)** will include:
+
+- MIT License
+- Acknowledgements
+- Citation
+- Maintainers
+- Contact Information
+- Support
+- Community Guidelines
+- Useful Resources
+- Final Project Philosophy
+- Closing Notes
+- GitHub Star Request
+- Professional Footer
+
+🎉 After Part 3C, your `README.md` will be fully complete and ready for GitHub.
+
+
+
+
+
+
+
+
+
+
