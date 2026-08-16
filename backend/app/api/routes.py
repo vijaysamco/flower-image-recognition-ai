@@ -19,6 +19,7 @@ from app.schemas import (
     PredictionResponse,
 )
 from app.services.predictor import Predictor
+from app.utils.file_validator import FileValidator
 
 router = APIRouter(tags=["FlowerVision AI"])
 
@@ -38,7 +39,7 @@ FLOWER_CLASSES = Predictor.FLOWER_CLASSES
 )
 async def health_check() -> HealthResponse:
     """
-    Check API health.
+    Health check endpoint.
     """
 
     logger.info("Health check requested.")
@@ -61,7 +62,7 @@ async def health_check() -> HealthResponse:
 )
 async def get_supported_flowers() -> FlowerClassesResponse:
     """
-    Return supported flower classes.
+    Return the list of supported flower classes.
     """
 
     logger.info("Supported flower classes requested.")
@@ -73,7 +74,7 @@ async def get_supported_flowers() -> FlowerClassesResponse:
 
 
 # ------------------------------------------------------------------
-# Predict Flower
+# Flower Prediction
 # ------------------------------------------------------------------
 
 @router.post(
@@ -86,7 +87,7 @@ async def predict_flower(
     file: UploadFile = File(...),
 ) -> PredictionResponse:
     """
-    Predict the flower species from an uploaded image.
+    Upload a flower image and receive a prediction.
     """
 
     logger.info(
@@ -94,15 +95,33 @@ async def predict_flower(
         file.filename,
     )
 
+    # ---------------------------------------------------------
+    # Validate uploaded file
+    # ---------------------------------------------------------
+
+    await FileValidator.validate(file)
+
+    # ---------------------------------------------------------
+    # Get shared services
+    # ---------------------------------------------------------
+
     image_processor = request.app.state.image_processor
     predictor = request.app.state.predictor
 
+    # ---------------------------------------------------------
+    # Process image
+    # ---------------------------------------------------------
+
     image_tensor = await image_processor.process(file)
+
+    # ---------------------------------------------------------
+    # Run prediction
+    # ---------------------------------------------------------
 
     result = predictor.predict(image_tensor)
 
     logger.info(
-        "Prediction successful: %s (%.2f%%)",
+        "Prediction completed: %s (%.2f%%)",
         result["prediction"],
         result["confidence"],
     )
