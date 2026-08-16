@@ -1,10 +1,11 @@
 """
 FlowerVision AI
 
-Services Package
+Service layer for business logic.
 
-This package contains the application's business logic,
-including image preprocessing and AI model inference.
+This package contains services responsible for image
+preprocessing, AI model inference, and other application
+business logic.
 """
 
 from app.services.image_processor import ImageProcessor
