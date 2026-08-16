@@ -4,139 +4,113 @@ FlowerVision AI
 API Routes
 """
 
-from fastapi import APIRouter, File, HTTPException, UploadFile, status
+from fastapi import APIRouter, File, UploadFile
 
 from app.core.config import settings
 from app.core.logger import get_logger
-
 from app.schemas import (
     FlowerClassesResponse,
     HealthResponse,
     PredictionResponse,
 )
+from app.services.image_processor import ImageProcessor
+from app.services.predictor import Predictor
+
 router = APIRouter(tags=["FlowerVision AI"])
 
 logger = get_logger(__name__)
 
 # ---------------------------------------------------------
-# Supported Flower Classes
+# Services
 # ---------------------------------------------------------
 
-FLOWER_CLASSES = [
-    "daisy",
-    "dandelion",
-    "rose",
-    "sunflower",
-    "tulip",
-]
+image_processor = ImageProcessor()
+predictor = Predictor()
 
+FLOWER_CLASSES = Predictor.FLOWER_CLASSES
 
 # ---------------------------------------------------------
 # Health Check
 # ---------------------------------------------------------
 
+
 @router.get(
     "/health",
-    summary="Health Check",
-    response_description="Application health status",
     response_model=HealthResponse,
+    summary="Health Check",
 )
-async def health_check():
+async def health_check() -> HealthResponse:
     """
-    Returns the application health status.
+    Check API health.
     """
 
     logger.info("Health check requested.")
 
-    return {
-        "status": "healthy",
-        "application": settings.APP_NAME,
-        "version": settings.APP_VERSION,
-    }
+    return HealthResponse(
+        status="healthy",
+        application=settings.APP_NAME,
+        version=settings.APP_VERSION,
+    )
 
 
 # ---------------------------------------------------------
-# Supported Flower Species
+# Supported Flower Classes
 # ---------------------------------------------------------
+
 
 @router.get(
     "/flowers",
-    summary="Supported Flower Species",
     response_model=FlowerClassesResponse,
+    summary="Supported Flower Species",
 )
-async def get_supported_flowers():
+async def get_supported_flowers() -> FlowerClassesResponse:
     """
-    Returns the list of supported flower species.
+    Return supported flower classes.
     """
 
-    logger.info("Supported flower list requested.")
+    logger.info("Flower classes requested.")
 
-    return {
-        "count": len(FLOWER_CLASSES),
-        "classes": FLOWER_CLASSES,
-    }
+    return FlowerClassesResponse(
+        count=len(FLOWER_CLASSES),
+        classes=FLOWER_CLASSES,
+    )
 
 
 # ---------------------------------------------------------
-# Flower Prediction
+# Prediction Endpoint
 # ---------------------------------------------------------
+
 
 @router.post(
     "/predict",
-    summary="Predict Flower Species",
     response_model=PredictionResponse,
+    summary="Predict Flower Species",
 )
 async def predict_flower(
     file: UploadFile = File(...),
-):
+) -> PredictionResponse:
     """
-    Accepts a flower image and returns
-    a prediction.
-
-    NOTE:
-    Actual AI inference will be implemented
-    in the service layer.
+    Predict flower species from an uploaded image.
     """
-
-    logger.info("Prediction request received.")
-
-    if file.content_type not in settings.ALLOWED_IMAGE_TYPES:
-        logger.warning(
-            "Unsupported file type: %s",
-            file.content_type,
-        )
-
-        raise HTTPException(
-            status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
-            detail="Unsupported image format.",
-        )
-
-    if not file.filename:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Filename is missing.",
-        )
-
-    # -----------------------------------------------------
-    # Placeholder Response
-    # Replace with actual AI inference later.
-    # -----------------------------------------------------
-
-    prediction = "sunflower"
-    confidence = 98.73
 
     logger.info(
-        "Prediction completed successfully for %s",
+        "Prediction request received: %s",
         file.filename,
     )
 
-    return {
-        "filename": file.filename,
-        "prediction": prediction,
-        "confidence": confidence,
-        "message": (
-            "Placeholder prediction. "
-            "AI inference will be connected "
-            "in the next phase."
-        ),
-    }
+    image_tensor = await image_processor.process(file)
+
+    result = predictor.predict(image_tensor)
+
+    logger.info(
+        "Prediction completed: %s (%.2f%%)",
+        result["prediction"],
+        result["confidence"],
+    )
+
+    return PredictionResponse(
+        filename=file.filename,
+        prediction=result["prediction"],
+        confidence=result["confidence"],
+        message="Prediction completed successfully.",
+    )
