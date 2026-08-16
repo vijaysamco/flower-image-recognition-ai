@@ -3,7 +3,7 @@ FlowerVision AI
 
 Main FastAPI Application
 
-Author: Vijay
+Author: VIJAY
 License: MIT
 """
 
@@ -12,9 +12,11 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.routes import router
+from app.api import router
 from app.core.config import settings
 from app.core.logger import get_logger
+from app.exceptions import register_exception_handlers
+from app.middleware import register_logging_middleware
 from app.services.image_processor import ImageProcessor
 from app.services.predictor import Predictor
 
@@ -24,25 +26,34 @@ logger = get_logger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """
-    Application startup and shutdown lifecycle.
+    Manage application startup and shutdown.
     """
 
-    logger.info("========================================")
-    logger.info("Starting FlowerVision AI API...")
-    logger.info("========================================")
+    logger.info("=" * 60)
+    logger.info("Starting %s...", settings.APP_NAME)
+    logger.info("=" * 60)
 
-    # Initialize shared services
-    app.state.image_processor = ImageProcessor()
-    app.state.predictor = Predictor()
+    try:
+        # ---------------------------------------------------------
+        # Initialize shared services
+        # ---------------------------------------------------------
 
-    logger.info("Application initialized successfully.")
+        app.state.image_processor = ImageProcessor()
+        app.state.predictor = Predictor()
 
-    yield
+        logger.info("Application services initialized successfully.")
 
-    logger.info("========================================")
-    logger.info("Shutting down FlowerVision AI API...")
-    logger.info("========================================")
+        yield
 
+    finally:
+        logger.info("=" * 60)
+        logger.info("Shutting down %s...", settings.APP_NAME)
+        logger.info("=" * 60)
+
+
+# ------------------------------------------------------------------
+# FastAPI Application
+# ------------------------------------------------------------------
 
 app = FastAPI(
     title=settings.APP_NAME,
@@ -55,8 +66,10 @@ app = FastAPI(
 )
 
 # ------------------------------------------------------------------
-# CORS
+# Middleware
 # ------------------------------------------------------------------
+
+register_logging_middleware(app)
 
 app.add_middleware(
     CORSMiddleware,
@@ -65,6 +78,12 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# ------------------------------------------------------------------
+# Exception Handlers
+# ------------------------------------------------------------------
+
+register_exception_handlers(app)
 
 # ------------------------------------------------------------------
 # API Routes
@@ -80,7 +99,11 @@ app.include_router(
 # ------------------------------------------------------------------
 
 
-@app.get("/", tags=["General"])
+@app.get(
+    "/",
+    tags=["General"],
+    summary="Application Information",
+)
 async def root():
     """
     Root endpoint.
