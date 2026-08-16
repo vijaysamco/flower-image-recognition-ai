@@ -3,7 +3,7 @@ FlowerVision AI
 
 Main FastAPI Application
 
-Author: VIJAY
+Author: Vijay
 License: MIT
 """
 
@@ -15,6 +15,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.routes import router
 from app.core.config import settings
 from app.core.logger import get_logger
+from app.services.image_processor import ImageProcessor
+from app.services.predictor import Predictor
 
 logger = get_logger(__name__)
 
@@ -25,26 +27,31 @@ async def lifespan(app: FastAPI):
     Application startup and shutdown lifecycle.
     """
 
+    logger.info("========================================")
     logger.info("Starting FlowerVision AI API...")
+    logger.info("========================================")
 
-    # TODO:
-    # Load AI model
-    # Initialize database
-    # Create upload directories
+    # Initialize shared services
+    app.state.image_processor = ImageProcessor()
+    app.state.predictor = Predictor()
+
+    logger.info("Application initialized successfully.")
 
     yield
 
+    logger.info("========================================")
     logger.info("Shutting down FlowerVision AI API...")
+    logger.info("========================================")
 
 
 app = FastAPI(
     title=settings.APP_NAME,
     version=settings.APP_VERSION,
     description="AI-powered Flower Image Recognition API",
+    lifespan=lifespan,
     docs_url="/docs",
     redoc_url="/redoc",
     openapi_url="/openapi.json",
-    lifespan=lifespan,
 )
 
 # ------------------------------------------------------------------
@@ -83,23 +90,6 @@ async def root():
         "application": settings.APP_NAME,
         "version": settings.APP_VERSION,
         "status": "running",
-        "docs": "/docs",
-    }
-
-
-# ------------------------------------------------------------------
-# Health Check
-# ------------------------------------------------------------------
-
-
-@app.get("/api/v1/health", tags=["General"])
-async def health():
-    """
-    Health check endpoint.
-    """
-
-    return {
-        "status": "healthy",
-        "application": settings.APP_NAME,
-        "version": settings.APP_VERSION,
+        "documentation": "/docs",
+        "openapi": "/openapi.json",
     }
