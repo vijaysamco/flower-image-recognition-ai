@@ -4,27 +4,25 @@ FlowerVision AI
 API Routes
 """
 
-from fastapi import (
-    APIRouter,
-    File,
-    Request,
-    UploadFile,
-)
+from fastapi import APIRouter, File, Request, UploadFile
 
 from app.core.config import settings
 from app.core.logger import get_logger
-from app.schemas import (
+from app.schemas.health import HealthResponse
+from app.schemas.prediction import (
     FlowerClassesResponse,
-    HealthResponse,
     PredictionResponse,
 )
 from app.services.predictor import Predictor
 from app.utils.file_validator import FileValidator
 
-router = APIRouter(tags=["FlowerVision AI"])
-
 logger = get_logger(__name__)
 
+router = APIRouter(
+    tags=["FlowerVision AI"],
+)
+
+# Single source of truth for the currently supported classes.
 FLOWER_CLASSES = Predictor.FLOWER_CLASSES
 
 
@@ -39,10 +37,8 @@ FLOWER_CLASSES = Predictor.FLOWER_CLASSES
 )
 async def health_check() -> HealthResponse:
     """
-    Health check endpoint.
+    Check whether the API is running.
     """
-
-    logger.info("Health check requested.")
 
     return HealthResponse(
         status="healthy",
@@ -52,20 +48,18 @@ async def health_check() -> HealthResponse:
 
 
 # ------------------------------------------------------------------
-# Supported Flower Classes
+# Supported Flowers
 # ------------------------------------------------------------------
 
 @router.get(
     "/flowers",
     response_model=FlowerClassesResponse,
-    summary="Supported Flower Species",
+    summary="Get Supported Flower Classes",
 )
 async def get_supported_flowers() -> FlowerClassesResponse:
     """
-    Return the list of supported flower classes.
+    Return all flower classes supported by the model.
     """
-
-    logger.info("Supported flower classes requested.")
 
     return FlowerClassesResponse(
         count=len(FLOWER_CLASSES),
@@ -74,7 +68,7 @@ async def get_supported_flowers() -> FlowerClassesResponse:
 
 
 # ------------------------------------------------------------------
-# Flower Prediction
+# Prediction
 # ------------------------------------------------------------------
 
 @router.post(
@@ -87,48 +81,59 @@ async def predict_flower(
     file: UploadFile = File(...),
 ) -> PredictionResponse:
     """
-    Upload a flower image and receive a prediction.
+    Predict the flower species from an uploaded image.
     """
 
     logger.info(
-        "Prediction request received for file: %s",
+        "Prediction request received | file=%s",
         file.filename,
     )
 
-    # ---------------------------------------------------------
-    # Validate uploaded file
-    # ---------------------------------------------------------
+    # --------------------------------------------------------------
+    # 1. Validate uploaded file
+    # --------------------------------------------------------------
 
     await FileValidator.validate(file)
 
-    # ---------------------------------------------------------
-    # Get shared services
-    # ---------------------------------------------------------
+    # --------------------------------------------------------------
+    # 2. Get application services
+    # --------------------------------------------------------------
 
     image_processor = request.app.state.image_processor
     predictor = request.app.state.predictor
 
-    # ---------------------------------------------------------
-    # Process image
-    # ---------------------------------------------------------
+    # --------------------------------------------------------------
+    # 3. Preprocess image
+    # --------------------------------------------------------------
 
     image_tensor = await image_processor.process(file)
 
-    # ---------------------------------------------------------
-    # Run prediction
-    # ---------------------------------------------------------
+    # --------------------------------------------------------------
+    # 4. Run AI inference
+    # --------------------------------------------------------------
 
     result = predictor.predict(image_tensor)
 
     logger.info(
-        "Prediction completed: %s (%.2f%%)",
+        "Prediction successful | file=%s | prediction=%s | "
+        "confidence=%.2f%%",
+        file.filename,
         result["prediction"],
         result["confidence"],
     )
 
+    # --------------------------------------------------------------
+    # 5. Return API response
+    # --------------------------------------------------------------
+
     return PredictionResponse(
-        filename=file.filename,
+        filename=file.filename or "unknown",
         prediction=result["prediction"],
         confidence=result["confidence"],
         message="Prediction completed successfully.",
     )
+
+
+__all__ = [
+    "router",
+]

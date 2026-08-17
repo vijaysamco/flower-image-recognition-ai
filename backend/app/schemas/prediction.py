@@ -1,33 +1,20 @@
 """
 FlowerVision AI
 
-Prediction Schemas
+Prediction API Schemas
 """
 
-from typing import List
-
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, Field
 
 
 class PredictionResponse(BaseModel):
     """
-    Response model for a flower prediction.
+    Response returned after flower image prediction.
     """
-
-    model_config = ConfigDict(
-        json_schema_extra={
-            "example": {
-                "filename": "sunflower.jpg",
-                "prediction": "sunflower",
-                "confidence": 98.73,
-                "message": "Prediction completed successfully.",
-            }
-        }
-    )
 
     filename: str = Field(
         ...,
-        description="Uploaded image filename.",
+        description="Name of the uploaded image.",
     )
 
     prediction: str = Field(
@@ -37,43 +24,35 @@ class PredictionResponse(BaseModel):
 
     confidence: float = Field(
         ...,
-        ge=0,
-        le=100,
+        ge=0.0,
+        le=100.0,
         description="Prediction confidence percentage.",
     )
 
     message: str = Field(
-        ...,
-        description="Prediction status message.",
+        default="Prediction completed successfully.",
+        description="Human-readable prediction message.",
     )
 
 
 class FlowerClassesResponse(BaseModel):
     """
-    Response model for supported flower classes.
+    Response containing supported flower classes.
     """
-
-    model_config = ConfigDict(
-        json_schema_extra={
-            "example": {
-                "count": 5,
-                "classes": [
-                    "daisy",
-                    "dandelion",
-                    "rose",
-                    "sunflower",
-                    "tulip",
-                ],
-            }
-        }
-    )
 
     count: int = Field(
         ...,
+        ge=0,
         description="Number of supported flower classes.",
     )
 
-    classes: List[str] = Field(
+    classes: list[str] = Field(
         ...,
         description="Supported flower species.",
     )
+
+
+__all__ = [
+    "PredictionResponse",
+    "FlowerClassesResponse",
+]

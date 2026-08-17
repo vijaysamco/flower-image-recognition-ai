@@ -1,26 +1,16 @@
 """
 FlowerVision AI
 
-Health Response Schema
+Health Check API Schemas
 """
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, Field
 
 
 class HealthResponse(BaseModel):
     """
-    Response model for the health check endpoint.
+    Response returned by the health check endpoint.
     """
-
-    model_config = ConfigDict(
-        json_schema_extra={
-            "example": {
-                "status": "healthy",
-                "application": "FlowerVision AI",
-                "version": "1.0.0",
-            }
-        }
-    )
 
     status: str = Field(
         ...,
@@ -34,5 +24,10 @@ class HealthResponse(BaseModel):
 
     version: str = Field(
         ...,
-        description="Current application version.",
+        description="Application version.",
     )
+
+
+__all__ = [
+    "HealthResponse",
+]

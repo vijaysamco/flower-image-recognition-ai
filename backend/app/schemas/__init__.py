@@ -1,10 +1,7 @@
 """
 FlowerVision AI
 
-Schemas Package
-
-This package contains all Pydantic models used for
-API request and response validation.
+API Schemas Package
 """
 
 from app.schemas.health import HealthResponse

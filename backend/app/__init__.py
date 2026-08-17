@@ -1,3 +1,7 @@
 """
-FlowerVision AI Backend Application
+FlowerVision AI
+
+Backend application package.
 """
+
+__version__ = "1.0.0"
