@@ -32,16 +32,38 @@ class Predictor:
 
     def __init__(self) -> None:
         """
-        Initialize the predictor and load the model.
+        Initialize the predictor.
+
+        The application can start without a trained model during
+        development. Prediction requests will remain unavailable
+        until the trained model is provided.
         """
 
         self.device = self._get_device()
-        self.model = self._load_model()
+        self.model: torch.nn.Module | None = None
+        self.model_loaded = False
 
-        logger.info(
-            "Predictor initialized | device=%s",
-            self.device,
-        )
+        model_path = Path(settings.MODEL_PATH)
+
+        if model_path.exists():
+            self.model = self._load_model()
+            self.model_loaded = True
+
+            logger.info(
+                "Predictor initialized successfully | device=%s",
+                self.device,
+            )
+        else:
+            logger.warning(
+                "Model file not found: %s",
+                model_path,
+            )
+
+            logger.warning(
+                "Application will start in development mode. "
+                "Prediction endpoint will be unavailable until "
+                "a trained model is provided."
+            )
 
     # ------------------------------------------------------------------
     # Device
@@ -51,9 +73,6 @@ class Predictor:
     def _get_device() -> torch.device:
         """
         Determine the PyTorch execution device.
-
-        CPU is used automatically if CUDA is requested but
-        unavailable.
         """
 
         requested_device = settings.DEVICE.lower()
@@ -69,20 +88,18 @@ class Predictor:
                 "Falling back to CPU."
             )
 
-            return torch.device("cpu")
-
         return torch.device("cpu")
 
     # ------------------------------------------------------------------
-    # Model Creation
+    # Model Architecture
     # ------------------------------------------------------------------
 
     def _create_model(self) -> torch.nn.Module:
         """
         Create the MobileNetV3-Small architecture.
 
-        The architecture must match the architecture used when
-        training the saved model.
+        This architecture must match the architecture used
+        during model training.
         """
 
         model = models.mobilenet_v3_small(
@@ -102,32 +119,15 @@ class Predictor:
 
     def _load_model(self) -> torch.nn.Module:
         """
-        Load the trained flower classification model.
-
-        Returns:
-            Loaded PyTorch model.
-
-        Raises:
-            HTTPException:
-                If the model file is missing or cannot be loaded.
+        Load the trained model checkpoint.
         """
 
         model_path = Path(settings.MODEL_PATH)
 
         logger.info(
-            "Loading model from: %s",
+            "Loading flower classification model from: %s",
             model_path,
         )
-
-        if not model_path.exists():
-            logger.error(
-                "Model file not found: %s",
-                model_path,
-            )
-
-            raise RuntimeError(
-                f"Model file not found: {model_path}"
-            )
 
         try:
             model = self._create_model()
@@ -139,7 +139,7 @@ class Predictor:
             )
 
             # ----------------------------------------------------------
-            # Support either a raw state_dict or a checkpoint dict.
+            # Extract state dictionary
             # ----------------------------------------------------------
 
             if isinstance(checkpoint, dict):
@@ -158,7 +158,10 @@ class Predictor:
                     "Unsupported model checkpoint format."
                 )
 
-            # Handle checkpoints saved from DataParallel.
+            # ----------------------------------------------------------
+            # Handle DataParallel checkpoints
+            # ----------------------------------------------------------
+
             state_dict = {
                 key.removeprefix("module."): value
                 for key, value in state_dict.items()
@@ -175,17 +178,9 @@ class Predictor:
 
             return model
 
-        except RuntimeError:
-            logger.exception(
-                "Unable to load model checkpoint: %s",
-                model_path,
-            )
-            raise
-
         except Exception as exc:
             logger.exception(
-                "Unexpected error while loading model: %s",
-                model_path,
+                "Failed to load flower classification model."
             )
 
             raise RuntimeError(
@@ -206,18 +201,48 @@ class Predictor:
 
         Args:
             image_tensor:
-                Preprocessed tensor with shape
-                [1, 3, IMAGE_SIZE, IMAGE_SIZE].
+                Preprocessed image tensor.
 
         Returns:
-            Dictionary containing prediction and confidence.
+            Prediction and confidence.
+
+        Raises:
+            HTTPException:
+                If the trained model is unavailable.
         """
 
-        if image_tensor.ndim != 4:
-            raise ValueError(
-                "Expected image tensor with 4 dimensions: "
-                "[batch, channels, height, width]."
+        # --------------------------------------------------------------
+        # Model availability check
+        # --------------------------------------------------------------
+
+        if not self.model_loaded or self.model is None:
+            logger.warning(
+                "Prediction requested but trained model is unavailable."
             )
+
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail=(
+                    "Flower recognition model is not available. "
+                    "Please provide the trained model."
+                ),
+            )
+
+        # --------------------------------------------------------------
+        # Validate tensor
+        # --------------------------------------------------------------
+
+        if image_tensor.ndim != 4:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=(
+                    "Invalid image tensor format."
+                ),
+            )
+
+        # --------------------------------------------------------------
+        # Inference
+        # --------------------------------------------------------------
 
         try:
             image_tensor = image_tensor.to(
@@ -256,7 +281,8 @@ class Predictor:
             )
 
             logger.info(
-                "Prediction completed | class=%s | confidence=%.2f%%",
+                "Prediction completed | "
+                "class=%s | confidence=%.2f%%",
                 prediction,
                 confidence_percentage,
             )
@@ -266,8 +292,10 @@ class Predictor:
                 "confidence": confidence_percentage,
             }
 
-        except Exception as exc:
+        except HTTPException:
+            raise
 
+        except Exception as exc:
             logger.exception(
                 "Model inference failed."
             )
@@ -276,6 +304,17 @@ class Predictor:
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Unable to perform image prediction.",
             ) from exc
+
+    # ------------------------------------------------------------------
+    # Model Status
+    # ------------------------------------------------------------------
+
+    def is_ready(self) -> bool:
+        """
+        Return whether the trained model is available.
+        """
+
+        return self.model_loaded
 
 
 __all__ = [
