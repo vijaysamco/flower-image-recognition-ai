@@ -159,3 +159,7 @@ local_settings.py
 # -------------------------
 *.tmp
 *.cache
+
+# Phase 3 training data
+training/dataset/
+training/downloads/
