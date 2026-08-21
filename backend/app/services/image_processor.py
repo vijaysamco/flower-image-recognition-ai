@@ -7,127 +7,169 @@ Image Processing Service
 from io import BytesIO
 
 import torch
-from fastapi import HTTPException, UploadFile, status
 from PIL import Image, UnidentifiedImageError
 from torchvision import transforms
 
-from app.core.config import settings
 from app.core.logger import get_logger
 
 logger = get_logger(__name__)
 
 
+# ------------------------------------------------------------------
+# Image Configuration
+# ------------------------------------------------------------------
+
+IMAGE_SIZE = 224
+
+IMAGE_MEAN = [
+    0.485,
+    0.456,
+    0.406,
+]
+
+IMAGE_STD = [
+    0.229,
+    0.224,
+    0.225,
+]
+
+
+# ------------------------------------------------------------------
+# Image Transform
+# ------------------------------------------------------------------
+
+IMAGE_TRANSFORM = transforms.Compose(
+    [
+        transforms.Resize(
+            (IMAGE_SIZE, IMAGE_SIZE)
+        ),
+        transforms.ToTensor(),
+        transforms.Normalize(
+            mean=IMAGE_MEAN,
+            std=IMAGE_STD,
+        ),
+    ]
+)
+
+
+# ------------------------------------------------------------------
+# Image Processor
+# ------------------------------------------------------------------
+
 class ImageProcessor:
     """
-    Validates and preprocesses images for model inference.
+    Handles image validation, decoding, preprocessing,
+    and conversion to a PyTorch tensor.
     """
 
-    def __init__(self) -> None:
+    @staticmethod
+    def validate_image(
+        image_bytes: bytes,
+    ) -> None:
         """
-        Initialize the image transformation pipeline.
-        """
-
-        self.transform = transforms.Compose(
-            [
-                transforms.Resize(
-                    (
-                        settings.IMAGE_SIZE,
-                        settings.IMAGE_SIZE,
-                    )
-                ),
-                transforms.ToTensor(),
-                transforms.Normalize(
-                    mean=[0.485, 0.456, 0.406],
-                    std=[0.229, 0.224, 0.225],
-                ),
-            ]
-        )
-
-    async def process(
-        self,
-        file: UploadFile,
-    ) -> torch.Tensor:
-        """
-        Read and preprocess an uploaded image.
+        Verify that the uploaded bytes represent a
+        valid image.
 
         Args:
-            file: Uploaded image file.
-
-        Returns:
-            Tensor with shape [1, 3, IMAGE_SIZE, IMAGE_SIZE].
+            image_bytes:
+                Raw image bytes.
 
         Raises:
-            HTTPException: If the image cannot be decoded.
+            ValueError:
+                If the image cannot be decoded.
         """
 
-        try:
-            image_bytes = await file.read()
+        if not image_bytes:
+            raise ValueError(
+                "Image file is empty."
+            )
 
-            if not image_bytes:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Uploaded image is empty.",
+        try:
+            with Image.open(
+                BytesIO(image_bytes)
+            ) as image:
+
+                image.verify()
+
+        except (
+            UnidentifiedImageError,
+            OSError,
+        ) as exc:
+
+            logger.warning(
+                "Invalid image received."
+            )
+
+            raise ValueError(
+                "The uploaded file is not a valid image."
+            ) from exc
+
+    @staticmethod
+    def process_image(
+        image_bytes: bytes,
+    ) -> torch.Tensor:
+        """
+        Convert raw image bytes into a model-ready
+        PyTorch tensor.
+
+        Processing pipeline:
+
+            Raw bytes
+                ↓
+            PIL Image
+                ↓
+            RGB
+                ↓
+            Resize 224x224
+                ↓
+            Tensor
+                ↓
+            ImageNet normalization
+                ↓
+            Batch dimension
+        """
+
+        ImageProcessor.validate_image(
+            image_bytes
+        )
+
+        try:
+            with Image.open(
+                BytesIO(image_bytes)
+            ) as image:
+
+                image = image.convert("RGB")
+
+                tensor = IMAGE_TRANSFORM(
+                    image
                 )
 
-            image = Image.open(
-                BytesIO(image_bytes)
-            )
+        except (
+            UnidentifiedImageError,
+            OSError,
+        ) as exc:
 
-            # Force image decoding while the file is available.
-            image.verify()
-
-            # Re-open after verify() because PIL invalidates
-            # the image object after verification.
-            image = Image.open(
-                BytesIO(image_bytes)
-            ).convert("RGB")
-
-        except UnidentifiedImageError as exc:
-            logger.warning(
-                "Unable to decode uploaded image: %s",
-                file.filename,
-            )
-
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Invalid or corrupted image file.",
-            ) from exc
-
-        except HTTPException:
-            raise
-
-        except Exception as exc:
             logger.exception(
-                "Unexpected error while processing image: %s",
-                file.filename,
+                "Failed to process uploaded image."
             )
 
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Unable to process the uploaded image.",
+            raise ValueError(
+                "Unable to process the uploaded image."
             ) from exc
 
-        try:
-            tensor = self.transform(image)
+        # Add batch dimension:
+        #
+        # [3, 224, 224]
+        #
+        # becomes:
+        #
+        # [1, 3, 224, 224]
 
-            # Add batch dimension:
-            # [3, H, W] -> [1, 3, H, W]
-            tensor = tensor.unsqueeze(0)
+        tensor = tensor.unsqueeze(0)
 
-        except Exception as exc:
-            logger.exception(
-                "Image transformation failed: %s",
-                file.filename,
-            )
-
-            raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail="Unable to transform the image for prediction.",
-            ) from exc
-
-        logger.info(
-            "Image processed successfully | file=%s | shape=%s",
-            file.filename,
+        logger.debug(
+            "Image processed successfully | "
+            "shape=%s",
             tuple(tensor.shape),
         )
 
