@@ -23,51 +23,82 @@ const fileInput =
     document.getElementById("fileInput");
 
 const previewContainer =
-    document.getElementById("previewContainer");
+    document.getElementById(
+        "previewContainer"
+    );
 
 const previewImage =
-    document.getElementById("previewImage");
+    document.getElementById(
+        "previewImage"
+    );
 
 const fileName =
-    document.getElementById("fileName");
+    document.getElementById(
+        "fileName"
+    );
 
 const predictButton =
-    document.getElementById("predictButton");
+    document.getElementById(
+        "predictButton"
+    );
+
+const changeButton =
+    document.getElementById(
+        "changeButton"
+    );
 
 const loading =
-    document.getElementById("loading");
+    document.getElementById(
+        "loading"
+    );
 
 const errorMessage =
-    document.getElementById("errorMessage");
+    document.getElementById(
+        "errorMessage"
+    );
 
 const result =
-    document.getElementById("result");
+    document.getElementById(
+        "result"
+    );
 
 const prediction =
-    document.getElementById("prediction");
+    document.getElementById(
+        "prediction"
+    );
 
 const confidence =
-    document.getElementById("confidence");
+    document.getElementById(
+        "confidence"
+    );
 
 const confidenceFill =
-    document.getElementById("confidenceFill");
+    document.getElementById(
+        "confidenceFill"
+    );
 
 const resultFileName =
-    document.getElementById("resultFileName");
+    document.getElementById(
+        "resultFileName"
+    );
 
 const resetButton =
-    document.getElementById("resetButton");
+    document.getElementById(
+        "resetButton"
+    );
 
 
 // --------------------------------------------------
-// State
+// Application State
 // --------------------------------------------------
 
 let selectedFile = null;
 
+let previewUrl = null;
+
 
 // --------------------------------------------------
-// File Selection
+// Choose Image
 // --------------------------------------------------
 
 chooseButton.addEventListener(
@@ -146,9 +177,10 @@ dropZone.addEventListener(
 
 function handleFile(file) {
 
-    clearMessages();
+    clearError();
 
     if (!isValidFile(file)) {
+
         showError(
             "Please select a JPG, PNG, or WebP image."
         );
@@ -156,19 +188,40 @@ function handleFile(file) {
         return;
     }
 
+
     selectedFile = file;
 
-    const imageUrl =
+
+    // Revoke previous preview URL.
+
+    if (previewUrl) {
+        URL.revokeObjectURL(
+            previewUrl
+        );
+    }
+
+
+    previewUrl =
         URL.createObjectURL(file);
 
-    previewImage.src = imageUrl;
+
+    previewImage.src =
+        previewUrl;
+
 
     fileName.textContent =
         file.name;
 
+
     dropZone.classList.add(
         "hidden"
     );
+
+
+    result.classList.add(
+        "hidden"
+    );
+
 
     previewContainer.classList.remove(
         "hidden"
@@ -177,7 +230,7 @@ function handleFile(file) {
 
 
 // --------------------------------------------------
-// File Validation
+// Validate File
 // --------------------------------------------------
 
 function isValidFile(file) {
@@ -211,6 +264,7 @@ predictButton.addEventListener(
             return;
         }
 
+
         await predictFlower(
             selectedFile
         );
@@ -220,17 +274,20 @@ predictButton.addEventListener(
 
 async function predictFlower(file) {
 
-    clearMessages();
+    clearError();
 
     setLoading(true);
 
+
     const formData =
         new FormData();
+
 
     formData.append(
         "file",
         file
     );
+
 
     try {
 
@@ -242,6 +299,7 @@ async function predictFlower(file) {
                     body: formData,
                 }
             );
+
 
         const data =
             await response.json();
@@ -262,6 +320,7 @@ async function predictFlower(file) {
 
         displayResult(data);
 
+
     } catch (error) {
 
         console.error(
@@ -269,20 +328,23 @@ async function predictFlower(file) {
             error
         );
 
+
         showError(
             error.message ||
-            "Unable to connect to the FlowerVision AI backend."
+            "Unable to connect to FlowerVision AI."
         );
+
 
     } finally {
 
         setLoading(false);
+
     }
 }
 
 
 // --------------------------------------------------
-// Display Result
+// Display Prediction Result
 // --------------------------------------------------
 
 function displayResult(data) {
@@ -290,8 +352,11 @@ function displayResult(data) {
     const flower =
         data.prediction;
 
+
     const confidenceValue =
-        Number(data.confidence);
+        Number(
+            data.confidence
+        );
 
 
     prediction.textContent =
@@ -304,20 +369,25 @@ function displayResult(data) {
 
     confidenceFill.style.width =
         `${Math.min(
-            Math.max(confidenceValue, 0),
+            Math.max(
+                confidenceValue,
+                0
+            ),
             100
         )}%`;
 
 
     resultFileName.textContent =
         `Image: ${
-            data.filename || selectedFile.name
+            data.filename ||
+            selectedFile.name
         }`;
 
 
     previewContainer.classList.add(
         "hidden"
     );
+
 
     result.classList.remove(
         "hidden"
@@ -336,6 +406,9 @@ function setLoading(isLoading) {
         predictButton.disabled =
             true;
 
+        changeButton.disabled =
+            true;
+
         loading.classList.remove(
             "hidden"
         );
@@ -349,6 +422,9 @@ function setLoading(isLoading) {
         predictButton.disabled =
             false;
 
+        changeButton.disabled =
+            false;
+
         loading.classList.add(
             "hidden"
         );
@@ -357,37 +433,74 @@ function setLoading(isLoading) {
 
 
 // --------------------------------------------------
+// Change Image
+// --------------------------------------------------
+
+changeButton.addEventListener(
+    "click",
+    () => {
+
+        fileInput.value = "";
+
+        fileInput.click();
+    }
+);
+
+
+// --------------------------------------------------
 // Reset
 // --------------------------------------------------
 
 resetButton.addEventListener(
     "click",
-    () => {
-
-        selectedFile = null;
-
-        fileInput.value = "";
-
-        previewImage.src = "";
-
-        previewContainer.classList.add(
-            "hidden"
-        );
-
-        result.classList.add(
-            "hidden"
-        );
-
-        dropZone.classList.remove(
-            "hidden"
-        );
-
-        confidenceFill.style.width =
-            "0%";
-
-        clearMessages();
-    }
+    resetApplication
 );
+
+
+function resetApplication() {
+
+    selectedFile = null;
+
+    fileInput.value = "";
+
+
+    if (previewUrl) {
+
+        URL.revokeObjectURL(
+            previewUrl
+        );
+
+        previewUrl = null;
+    }
+
+
+    previewImage.src = "";
+
+    fileName.textContent = "";
+
+    prediction.textContent = "";
+
+    confidence.textContent =
+        "0%";
+
+    confidenceFill.style.width =
+        "0%";
+
+
+    previewContainer.classList.add(
+        "hidden"
+    );
+
+    result.classList.add(
+        "hidden"
+    );
+
+    dropZone.classList.remove(
+        "hidden"
+    );
+
+    clearError();
+}
 
 
 // --------------------------------------------------
@@ -405,7 +518,7 @@ function showError(message) {
 }
 
 
-function clearMessages() {
+function clearError() {
 
     errorMessage.textContent = "";
 
@@ -416,7 +529,7 @@ function clearMessages() {
 
 
 // --------------------------------------------------
-// Helpers
+// Helper
 // --------------------------------------------------
 
 function capitalize(value) {
@@ -425,6 +538,9 @@ function capitalize(value) {
         return "";
     }
 
-    return value.charAt(0).toUpperCase()
-        + value.slice(1);
+
+    return (
+        value.charAt(0).toUpperCase() +
+        value.slice(1)
+    );
 }

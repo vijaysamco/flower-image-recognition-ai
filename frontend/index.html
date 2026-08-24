@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
 
@@ -10,7 +11,7 @@
 
     <meta
         name="description"
-        content="FlowerVision AI - AI powered flower recognition"
+        content="FlowerVision AI - AI-powered flower recognition"
     >
 
     <title>FlowerVision AI</title>
@@ -25,7 +26,7 @@
 
     <main class="app-container">
 
-        <!-- Header -->
+        <!-- Hero -->
         <header class="hero">
 
             <div class="flower-icon">
@@ -37,13 +38,13 @@
             </h1>
 
             <p>
-                Upload a flower image and let AI identify it.
+                Identify flowers instantly using AI.
             </p>
 
         </header>
 
 
-        <!-- Upload Section -->
+        <!-- Main Card -->
         <section class="card">
 
             <h2>
@@ -51,12 +52,24 @@
             </h2>
 
             <p class="subtitle">
-                Supported flowers: Daisy, Dandelion, Rose,
-                Sunflower and Tulip.
+                Upload a flower image and our AI will
+                identify it.
             </p>
 
 
-            <!-- Drop Zone -->
+            <!-- Supported Flowers -->
+            <div class="supported">
+
+                <span>🌼 Daisy</span>
+                <span>🌻 Dandelion</span>
+                <span>🌹 Rose</span>
+                <span>🌻 Sunflower</span>
+                <span>🌷 Tulip</span>
+
+            </div>
+
+
+            <!-- Upload Area -->
             <div
                 id="dropZone"
                 class="drop-zone"
@@ -66,13 +79,13 @@
                     📷
                 </div>
 
-                <p>
-                    Drag & drop your image here
-                </p>
+                <h3>
+                    Drop your flower image here
+                </h3>
 
-                <span>
+                <p>
                     or
-                </span>
+                </p>
 
                 <button
                     id="chooseButton"
@@ -89,34 +102,53 @@
                     hidden
                 >
 
-                <p class="file-info">
+                <small>
                     JPG, PNG or WebP
-                </p>
+                </small>
 
             </div>
 
 
-            <!-- Image Preview -->
+            <!-- Preview -->
             <div
                 id="previewContainer"
                 class="preview-container hidden"
             >
 
+                <h3>
+                    Selected Image
+                </h3>
+
                 <img
                     id="previewImage"
                     src=""
-                    alt="Selected flower"
+                    alt="Selected flower image"
                 >
 
-                <p id="fileName"></p>
+                <p
+                    id="fileName"
+                    class="file-name"
+                ></p>
 
-                <button
-                    id="predictButton"
-                    type="button"
-                    class="primary-button"
-                >
-                    🔍 Identify Flower
-                </button>
+                <div class="action-buttons">
+
+                    <button
+                        id="predictButton"
+                        type="button"
+                        class="primary-button"
+                    >
+                        🔍 Identify Flower
+                    </button>
+
+                    <button
+                        id="changeButton"
+                        type="button"
+                        class="secondary-button"
+                    >
+                        Change Image
+                    </button>
+
+                </div>
 
             </div>
 
@@ -126,11 +158,17 @@
                 id="loading"
                 class="loading hidden"
             >
+
                 <div class="spinner"></div>
 
+                <h3>
+                    Analyzing your flower...
+                </h3>
+
                 <p>
-                    AI is analyzing your flower...
+                    FlowerVision AI is working its magic 🌸
                 </p>
+
             </div>
 
 
@@ -138,6 +176,7 @@
             <div
                 id="errorMessage"
                 class="error-message hidden"
+                role="alert"
             ></div>
 
 
@@ -151,47 +190,57 @@
                     🌺
                 </div>
 
-                <h3>
-                    Prediction
-                </h3>
+                <p class="result-label">
+                    AI Prediction
+                </p>
 
-                <p
+                <h2
                     id="prediction"
                     class="prediction"
-                ></p>
+                ></h2>
 
+
+                <!-- Confidence -->
                 <div class="confidence-container">
 
                     <div class="confidence-header">
+
                         <span>
                             Confidence
                         </span>
 
-                        <span id="confidence">
+                        <strong
+                            id="confidence"
+                        >
                             0%
-                        </span>
+                        </strong>
+
                     </div>
 
                     <div class="confidence-bar">
+
                         <div
                             id="confidenceFill"
                             class="confidence-fill"
                         ></div>
+
                     </div>
 
                 </div>
+
 
                 <p
                     id="resultFileName"
                     class="result-file"
                 ></p>
 
+
                 <button
                     id="resetButton"
                     type="button"
                     class="secondary-button"
                 >
-                    🔄 Try Another Image
+                    🔄 Identify Another Flower
                 </button>
 
             </div>
@@ -201,14 +250,22 @@
 
         <!-- Footer -->
         <footer>
+
             <p>
-                🌸 FlowerVision AI · Powered by MobileNetV3-Small
+                🌸 FlowerVision AI
             </p>
+
+            <p>
+                Powered by MobileNetV3-Small
+            </p>
+
         </footer>
 
     </main>
 
+
     <script src="app.js"></script>
 
 </body>
+
 </html>
