@@ -1,12 +1,28 @@
 "use strict";
 
+/*
+ * FlowerVision AI
+ * Frontend Application
+ *
+ * Responsibilities:
+ * - Image selection
+ * - Drag and drop
+ * - Image preview
+ * - API prediction request
+ * - Loading state
+ * - Prediction result
+ * - Error handling
+ * - Reset / retry
+ */
+
 
 // --------------------------------------------------
 // Configuration
 // --------------------------------------------------
 
 const API_URL =
-    "http://127.0.0.1:8000/api/v1/predict";
+    FLOWERVISION_CONFIG.API_BASE_URL +
+    FLOWERVISION_CONFIG.PREDICT_ENDPOINT;
 
 
 // --------------------------------------------------
@@ -172,7 +188,7 @@ dropZone.addEventListener(
 
 
 // --------------------------------------------------
-// Handle File
+// Handle Selected File
 // --------------------------------------------------
 
 function handleFile(file) {
@@ -192,9 +208,10 @@ function handleFile(file) {
     selectedFile = file;
 
 
-    // Revoke previous preview URL.
+    // Release previous preview URL.
 
     if (previewUrl) {
+
         URL.revokeObjectURL(
             previewUrl
         );
@@ -241,6 +258,7 @@ function isValidFile(file) {
         "image/webp",
     ];
 
+
     return allowedTypes.includes(
         file.type
     );
@@ -248,7 +266,7 @@ function isValidFile(file) {
 
 
 // --------------------------------------------------
-// Prediction
+// Prediction Button
 // --------------------------------------------------
 
 predictButton.addEventListener(
@@ -271,6 +289,10 @@ predictButton.addEventListener(
     }
 );
 
+
+// --------------------------------------------------
+// Predict Flower
+// --------------------------------------------------
 
 async function predictFlower(file) {
 
@@ -301,8 +323,19 @@ async function predictFlower(file) {
             );
 
 
-        const data =
-            await response.json();
+        let data;
+
+        try {
+
+            data =
+                await response.json();
+
+        } catch (jsonError) {
+
+            throw new Error(
+                "The server returned an invalid response."
+            );
+        }
 
 
         if (!response.ok) {
@@ -324,21 +357,19 @@ async function predictFlower(file) {
     } catch (error) {
 
         console.error(
-            "Prediction error:",
+            "FlowerVision AI prediction error:",
             error
         );
 
 
         showError(
-            error.message ||
-            "Unable to connect to FlowerVision AI."
+            getErrorMessage(error)
         );
 
 
     } finally {
 
         setLoading(false);
-
     }
 }
 
@@ -409,6 +440,9 @@ function setLoading(isLoading) {
         changeButton.disabled =
             true;
 
+        chooseButton.disabled =
+            true;
+
         loading.classList.remove(
             "hidden"
         );
@@ -423,6 +457,9 @@ function setLoading(isLoading) {
             false;
 
         changeButton.disabled =
+            false;
+
+        chooseButton.disabled =
             false;
 
         loading.classList.add(
@@ -448,7 +485,7 @@ changeButton.addEventListener(
 
 
 // --------------------------------------------------
-// Reset
+// Reset Application
 // --------------------------------------------------
 
 resetButton.addEventListener(
@@ -486,18 +523,24 @@ function resetApplication() {
     confidenceFill.style.width =
         "0%";
 
+    resultFileName.textContent =
+        "";
+
 
     previewContainer.classList.add(
         "hidden"
     );
 
+
     result.classList.add(
         "hidden"
     );
 
+
     dropZone.classList.remove(
         "hidden"
     );
+
 
     clearError();
 }
@@ -520,10 +563,42 @@ function showError(message) {
 
 function clearError() {
 
-    errorMessage.textContent = "";
+    errorMessage.textContent =
+        "";
 
     errorMessage.classList.add(
         "hidden"
+    );
+}
+
+
+// --------------------------------------------------
+// Friendly Error Messages
+// --------------------------------------------------
+
+function getErrorMessage(error) {
+
+    if (!error) {
+
+        return "An unexpected error occurred.";
+    }
+
+
+    if (
+        error instanceof TypeError &&
+        error.message === "Failed to fetch"
+    ) {
+
+        return (
+            "Unable to connect to FlowerVision AI. " +
+            "Make sure the backend is running."
+        );
+    }
+
+
+    return (
+        error.message ||
+        "Prediction failed. Please try again."
     );
 }
 

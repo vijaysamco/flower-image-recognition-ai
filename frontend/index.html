@@ -14,6 +14,11 @@
         content="FlowerVision AI - AI-powered flower recognition"
     >
 
+    <meta
+        name="theme-color"
+        content="#4f46e5"
+    >
+
     <title>FlowerVision AI</title>
 
     <link
@@ -26,10 +31,16 @@
 
     <main class="app-container">
 
-        <!-- Hero -->
+        <!-- ==================================================
+             Hero Section
+        =================================================== -->
+
         <header class="hero">
 
-            <div class="flower-icon">
+            <div
+                class="flower-icon"
+                aria-hidden="true"
+            >
                 🌸
             </div>
 
@@ -44,24 +55,36 @@
         </header>
 
 
-        <!-- Main Card -->
-        <section class="card">
+        <!-- ==================================================
+             Main Application
+        =================================================== -->
 
-            <h2>
+        <section
+            class="card"
+            aria-labelledby="identify-title"
+        >
+
+            <h2 id="identify-title">
                 Identify a Flower
             </h2>
 
             <p class="subtitle">
-                Upload a flower image and our AI will
-                identify it.
+                Upload a flower image and our AI
+                will identify it for you.
             </p>
 
 
-            <!-- Supported Flowers -->
-            <div class="supported">
+            <!-- ==================================================
+                 Supported Flowers
+            =================================================== -->
+
+            <div
+                class="supported"
+                aria-label="Supported flowers"
+            >
 
                 <span>🌼 Daisy</span>
-                <span>🌻 Dandelion</span>
+                <span>🌼 Dandelion</span>
                 <span>🌹 Rose</span>
                 <span>🌻 Sunflower</span>
                 <span>🌷 Tulip</span>
@@ -69,13 +92,21 @@
             </div>
 
 
-            <!-- Upload Area -->
+            <!-- ==================================================
+                 Upload Area
+            =================================================== -->
+
             <div
                 id="dropZone"
                 class="drop-zone"
+                role="region"
+                aria-label="Flower image upload area"
             >
 
-                <div class="upload-icon">
+                <div
+                    class="upload-icon"
+                    aria-hidden="true"
+                >
                     📷
                 </div>
 
@@ -100,16 +131,20 @@
                     type="file"
                     accept="image/jpeg,image/png,image/webp"
                     hidden
+                    aria-label="Choose a flower image"
                 >
 
                 <small>
-                    JPG, PNG or WebP
+                    Supported formats: JPG, PNG, WebP
                 </small>
 
             </div>
 
 
-            <!-- Preview -->
+            <!-- ==================================================
+                 Image Preview
+            =================================================== -->
+
             <div
                 id="previewContainer"
                 class="preview-container hidden"
@@ -122,13 +157,14 @@
                 <img
                     id="previewImage"
                     src=""
-                    alt="Selected flower image"
+                    alt="Preview of selected flower"
                 >
 
                 <p
                     id="fileName"
                     class="file-name"
                 ></p>
+
 
                 <div class="action-buttons">
 
@@ -153,13 +189,21 @@
             </div>
 
 
-            <!-- Loading -->
+            <!-- ==================================================
+                 Loading State
+            =================================================== -->
+
             <div
                 id="loading"
                 class="loading hidden"
+                role="status"
+                aria-live="polite"
             >
 
-                <div class="spinner"></div>
+                <div
+                    class="spinner"
+                    aria-hidden="true"
+                ></div>
 
                 <h3>
                     Analyzing your flower...
@@ -172,21 +216,32 @@
             </div>
 
 
-            <!-- Error -->
+            <!-- ==================================================
+                 Error Message
+            =================================================== -->
+
             <div
                 id="errorMessage"
                 class="error-message hidden"
                 role="alert"
+                aria-live="assertive"
             ></div>
 
 
-            <!-- Result -->
+            <!-- ==================================================
+                 Prediction Result
+            =================================================== -->
+
             <div
                 id="result"
                 class="result hidden"
+                aria-live="polite"
             >
 
-                <div class="result-icon">
+                <div
+                    class="result-icon"
+                    aria-hidden="true"
+                >
                     🌺
                 </div>
 
@@ -197,10 +252,12 @@
                 <h2
                     id="prediction"
                     class="prediction"
-                ></h2>
+                >
+                </h2>
 
 
                 <!-- Confidence -->
+
                 <div class="confidence-container">
 
                     <div class="confidence-header">
@@ -209,15 +266,20 @@
                             Confidence
                         </span>
 
-                        <strong
-                            id="confidence"
-                        >
+                        <strong id="confidence">
                             0%
                         </strong>
 
                     </div>
 
-                    <div class="confidence-bar">
+
+                    <div
+                        class="confidence-bar"
+                        role="progressbar"
+                        aria-label="Prediction confidence"
+                        aria-valuemin="0"
+                        aria-valuemax="100"
+                    >
 
                         <div
                             id="confidenceFill"
@@ -248,7 +310,10 @@
         </section>
 
 
-        <!-- Footer -->
+        <!-- ==================================================
+             Footer
+        =================================================== -->
+
         <footer>
 
             <p>
@@ -263,6 +328,15 @@
 
     </main>
 
+
+    <!-- ==================================================
+         JavaScript
+         
+         IMPORTANT:
+         config.js MUST load before app.js.
+    =================================================== -->
+
+    <script src="config.js"></script>
 
     <script src="app.js"></script>
 
