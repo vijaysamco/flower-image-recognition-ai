@@ -1,7 +1,7 @@
 """
 FlowerVision AI
 
-Main FastAPI Application
+FastAPI Application Entry Point
 """
 
 from contextlib import asynccontextmanager
@@ -9,16 +9,10 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import router
+from app.api.routes import router
 from app.core.config import settings
-from app.core.logger import configure_logging, get_logger
-from app.exceptions import register_exception_handlers
-from app.middleware import register_logging_middleware
-from app.services.image_processor import ImageProcessor
-from app.services.predictor import Predictor
+from app.core.logger import get_logger
 
-# Configure logging before creating application services.
-configure_logging()
 
 logger = get_logger(__name__)
 
@@ -40,12 +34,11 @@ async def lifespan(app: FastAPI):
     )
 
     try:
-        # ----------------------------------------------------------
-        # Initialize application services
-        # ----------------------------------------------------------
+        # Importing Predictor here ensures the trained model
+        # is loaded during application startup.
+        from app.services.predictor import Predictor
 
-        app.state.image_processor = ImageProcessor()
-        app.state.predictor = Predictor()
+        Predictor()
 
         logger.info(
             "Application services initialized successfully."
@@ -61,7 +54,7 @@ async def lifespan(app: FastAPI):
 
     finally:
         logger.info(
-            "Shutting down %s",
+            "Shutting down %s.",
             settings.APP_NAME,
         )
 
@@ -74,35 +67,24 @@ app = FastAPI(
     title=settings.APP_NAME,
     version=settings.APP_VERSION,
     description=(
-        "AI-powered Flower Image Recognition API."
+        "AI-powered flower image recognition API "
+        "using MobileNetV3-Small."
     ),
     lifespan=lifespan,
-    docs_url="/docs",
-    redoc_url="/redoc",
-    openapi_url="/openapi.json",
 )
 
 
 # ------------------------------------------------------------------
-# Middleware
+# CORS
 # ------------------------------------------------------------------
-
-register_logging_middleware(app)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.ALLOWED_ORIGINS,
-    allow_credentials=True,
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-
-# ------------------------------------------------------------------
-# Exception Handlers
-# ------------------------------------------------------------------
-
-register_exception_handlers(app)
 
 
 # ------------------------------------------------------------------
@@ -111,7 +93,7 @@ register_exception_handlers(app)
 
 app.include_router(
     router,
-    prefix=settings.API_PREFIX,
+    prefix="/api/v1",
 )
 
 
@@ -119,12 +101,8 @@ app.include_router(
 # Root Endpoint
 # ------------------------------------------------------------------
 
-@app.get(
-    "/",
-    tags=["General"],
-    summary="Application Information",
-)
-async def root() -> dict[str, str]:
+@app.get("/")
+async def root() -> dict:
     """
     Return basic application information.
     """
@@ -134,10 +112,5 @@ async def root() -> dict[str, str]:
         "version": settings.APP_VERSION,
         "status": "running",
         "documentation": "/docs",
-        "health": f"{settings.API_PREFIX}/health",
+        "health": "/api/v1/health",
     }
-
-
-__all__ = [
-    "app",
-]
