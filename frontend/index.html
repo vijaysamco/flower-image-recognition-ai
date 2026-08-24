@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta
+        name="description"
+        content="FlowerVision AI - AI powered flower recognition"
+    >
+
+    <title>FlowerVision AI</title>
+
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
+</head>
+
+<body>
+
+    <main class="app-container">
+
+        <!-- Header -->
+        <header class="hero">
+
+            <div class="flower-icon">
+                🌸
+            </div>
+
+            <h1>
+                FlowerVision AI
+            </h1>
+
+            <p>
+                Upload a flower image and let AI identify it.
+            </p>
+
+        </header>
+
+
+        <!-- Upload Section -->
+        <section class="card">
+
+            <h2>
+                Identify a Flower
+            </h2>
+
+            <p class="subtitle">
+                Supported flowers: Daisy, Dandelion, Rose,
+                Sunflower and Tulip.
+            </p>
+
+
+            <!-- Drop Zone -->
+            <div
+                id="dropZone"
+                class="drop-zone"
+            >
+
+                <div class="upload-icon">
+                    📷
+                </div>
+
+                <p>
+                    Drag & drop your image here
+                </p>
+
+                <span>
+                    or
+                </span>
+
+                <button
+                    id="chooseButton"
+                    type="button"
+                    class="primary-button"
+                >
+                    Choose Image
+                </button>
+
+                <input
+                    id="fileInput"
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    hidden
+                >
+
+                <p class="file-info">
+                    JPG, PNG or WebP
+                </p>
+
+            </div>
+
+
+            <!-- Image Preview -->
+            <div
+                id="previewContainer"
+                class="preview-container hidden"
+            >
+
+                <img
+                    id="previewImage"
+                    src=""
+                    alt="Selected flower"
+                >
+
+                <p id="fileName"></p>
+
+                <button
+                    id="predictButton"
+                    type="button"
+                    class="primary-button"
+                >
+                    🔍 Identify Flower
+                </button>
+
+            </div>
+
+
+            <!-- Loading -->
+            <div
+                id="loading"
+                class="loading hidden"
+            >
+                <div class="spinner"></div>
+
+                <p>
+                    AI is analyzing your flower...
+                </p>
+            </div>
+
+
+            <!-- Error -->
+            <div
+                id="errorMessage"
+                class="error-message hidden"
+            ></div>
+
+
+            <!-- Result -->
+            <div
+                id="result"
+                class="result hidden"
+            >
+
+                <div class="result-icon">
+                    🌺
+                </div>
+
+                <h3>
+                    Prediction
+                </h3>
+
+                <p
+                    id="prediction"
+                    class="prediction"
+                ></p>
+
+                <div class="confidence-container">
+
+                    <div class="confidence-header">
+                        <span>
+                            Confidence
+                        </span>
+
+                        <span id="confidence">
+                            0%
+                        </span>
+                    </div>
+
+                    <div class="confidence-bar">
+                        <div
+                            id="confidenceFill"
+                            class="confidence-fill"
+                        ></div>
+                    </div>
+
+                </div>
+
+                <p
+                    id="resultFileName"
+                    class="result-file"
+                ></p>
+
+                <button
+                    id="resetButton"
+                    type="button"
+                    class="secondary-button"
+                >
+                    🔄 Try Another Image
+                </button>
+
+            </div>
+
+        </section>
+
+
+        <!-- Footer -->
+        <footer>
+            <p>
+                🌸 FlowerVision AI · Powered by MobileNetV3-Small
+            </p>
+        </footer>
+
+    </main>
+
+    <script src="app.js"></script>
+
+</body>
+</html>
