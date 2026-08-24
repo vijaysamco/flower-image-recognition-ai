@@ -4,40 +4,65 @@ FlowerVision AI
 API Routes
 """
 
-from fastapi import APIRouter, File, Request, UploadFile
+from fastapi import (
+    APIRouter,
+    File,
+    HTTPException,
+    UploadFile,
+)
 
 from app.core.config import settings
 from app.core.logger import get_logger
 from app.schemas.health import HealthResponse
-from app.schemas.prediction import (
-    FlowerClassesResponse,
-    PredictionResponse,
-)
+from app.schemas.prediction import PredictionResponse
+from app.services.image_processor import ImageProcessor
 from app.services.predictor import Predictor
 from app.utils.file_validator import FileValidator
 
+
 logger = get_logger(__name__)
 
-router = APIRouter(
-    tags=["FlowerVision AI"],
-)
-
-# Single source of truth for the currently supported classes.
-FLOWER_CLASSES = Predictor.FLOWER_CLASSES
+router = APIRouter()
 
 
 # ------------------------------------------------------------------
-# Health Check
+# Services
+# ------------------------------------------------------------------
+
+image_processor = ImageProcessor()
+predictor = Predictor()
+
+
+# ------------------------------------------------------------------
+# Root
+# ------------------------------------------------------------------
+
+@router.get("/")
+async def root() -> dict:
+    """
+    API root endpoint.
+    """
+
+    return {
+        "application": settings.APP_NAME,
+        "version": settings.APP_VERSION,
+        "status": "running",
+        "documentation": "/docs",
+        "health": "/api/v1/health",
+    }
+
+
+# ------------------------------------------------------------------
+# Health
 # ------------------------------------------------------------------
 
 @router.get(
     "/health",
     response_model=HealthResponse,
-    summary="Health Check",
 )
-async def health_check() -> HealthResponse:
+async def health() -> HealthResponse:
     """
-    Check whether the API is running.
+    Return API health status.
     """
 
     return HealthResponse(
@@ -48,23 +73,23 @@ async def health_check() -> HealthResponse:
 
 
 # ------------------------------------------------------------------
-# Supported Flowers
+# Flowers
 # ------------------------------------------------------------------
 
 @router.get(
     "/flowers",
-    response_model=FlowerClassesResponse,
-    summary="Get Supported Flower Classes",
 )
-async def get_supported_flowers() -> FlowerClassesResponse:
+async def flowers() -> dict:
     """
-    Return all flower classes supported by the model.
+    Return supported flower classes.
     """
 
-    return FlowerClassesResponse(
-        count=len(FLOWER_CLASSES),
-        classes=FLOWER_CLASSES,
-    )
+    classes = predictor.FLOWER_CLASSES
+
+    return {
+        "count": len(classes),
+        "classes": classes,
+    }
 
 
 # ------------------------------------------------------------------
@@ -74,66 +99,89 @@ async def get_supported_flowers() -> FlowerClassesResponse:
 @router.post(
     "/predict",
     response_model=PredictionResponse,
-    summary="Predict Flower Species",
 )
-async def predict_flower(
-    request: Request,
+async def predict(
     file: UploadFile = File(...),
 ) -> PredictionResponse:
     """
-    Predict the flower species from an uploaded image.
+    Predict the flower class from an uploaded image.
     """
 
     logger.info(
-        "Prediction request received | file=%s",
+        "Prediction request received | filename=%s | content_type=%s",
         file.filename,
+        file.content_type,
     )
 
     # --------------------------------------------------------------
-    # 1. Validate uploaded file
+    # Validate uploaded file
     # --------------------------------------------------------------
 
-    await FileValidator.validate(file)
+    await FileValidator.validate(
+        file
+    )
 
     # --------------------------------------------------------------
-    # 2. Get application services
+    # Read uploaded file
     # --------------------------------------------------------------
 
-    image_processor = request.app.state.image_processor
-    predictor = request.app.state.predictor
+    image_bytes = await file.read()
+
+    if not image_bytes:
+        logger.warning(
+            "Empty image file received | filename=%s",
+            file.filename,
+        )
+
+        raise HTTPException(
+            status_code=400,
+            detail="Uploaded image file is empty.",
+        )
 
     # --------------------------------------------------------------
-    # 3. Preprocess image
+    # Process image
     # --------------------------------------------------------------
 
-    image_tensor = await image_processor.process(file)
+    try:
+        image_tensor = image_processor.process(
+            image_bytes
+        )
+
+    except ValueError as exc:
+
+        logger.warning(
+            "Invalid image uploaded | filename=%s | error=%s",
+            file.filename,
+            str(exc),
+        )
+
+        raise HTTPException(
+            status_code=400,
+            detail=str(exc),
+        ) from exc
 
     # --------------------------------------------------------------
-    # 4. Run AI inference
+    # Run prediction
     # --------------------------------------------------------------
 
-    result = predictor.predict(image_tensor)
+    result = predictor.predict(
+        image_tensor
+    )
 
     logger.info(
-        "Prediction successful | file=%s | prediction=%s | "
-        "confidence=%.2f%%",
+        "Prediction completed | filename=%s | prediction=%s | confidence=%s",
         file.filename,
         result["prediction"],
         result["confidence"],
     )
 
     # --------------------------------------------------------------
-    # 5. Return API response
+    # Return response
     # --------------------------------------------------------------
 
     return PredictionResponse(
+        success=True,
         filename=file.filename or "unknown",
         prediction=result["prediction"],
         confidence=result["confidence"],
-        message="Prediction completed successfully.",
     )
-
-
-__all__ = [
-    "router",
-]

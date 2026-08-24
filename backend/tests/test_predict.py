@@ -9,14 +9,23 @@ from io import BytesIO
 from PIL import Image
 
 
+SUPPORTED_FLOWERS = {
+    "daisy",
+    "dandelion",
+    "rose",
+    "sunflower",
+    "tulip",
+}
+
+
 def create_test_image() -> bytes:
     """
-    Create a small valid JPEG image for testing.
+    Create a valid JPEG image for API testing.
     """
 
     image = Image.new(
         "RGB",
-        (100, 100),
+        (224, 224),
         (255, 255, 255),
     )
 
@@ -30,10 +39,10 @@ def create_test_image() -> bytes:
     return buffer.getvalue()
 
 
-def test_prediction_without_model(client):
+def test_prediction(client):
     """
-    Verify that prediction returns 503 when the trained
-    model is not available.
+    Verify that the prediction endpoint successfully
+    processes a valid image using the trained model.
     """
 
     image_bytes = create_test_image()
@@ -49,14 +58,31 @@ def test_prediction_without_model(client):
         },
     )
 
-    assert response.status_code == 503
+    assert response.status_code == 200
 
     data = response.json()
 
-    assert data["success"] is False
-    assert data["error"]["code"] == 503
+    assert data["filename"] == "flower.jpg"
 
-    assert (
-        "model"
-        in data["error"]["message"].lower()
+    assert data["prediction"] in SUPPORTED_FLOWERS
+
+    assert 0 <= data["confidence"] <= 100
+
+
+def test_prediction_invalid_image(client):
+    """
+    Verify that invalid image content is rejected.
+    """
+
+    response = client.post(
+        "/api/v1/predict",
+        files={
+            "file": (
+                "invalid.jpg",
+                b"not-a-real-image",
+                "image/jpeg",
+            )
+        },
     )
+
+    assert response.status_code == 400

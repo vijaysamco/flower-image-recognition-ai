@@ -12,6 +12,7 @@ from torchvision import transforms
 
 from app.core.logger import get_logger
 
+
 logger = get_logger(__name__)
 
 
@@ -58,8 +59,8 @@ IMAGE_TRANSFORM = transforms.Compose(
 
 class ImageProcessor:
     """
-    Handles image validation, decoding, preprocessing,
-    and conversion to a PyTorch tensor.
+    Handles image validation, decoding,
+    preprocessing, and tensor conversion.
     """
 
     @staticmethod
@@ -67,16 +68,8 @@ class ImageProcessor:
         image_bytes: bytes,
     ) -> None:
         """
-        Verify that the uploaded bytes represent a
-        valid image.
-
-        Args:
-            image_bytes:
-                Raw image bytes.
-
-        Raises:
-            ValueError:
-                If the image cannot be decoded.
+        Validate that the uploaded bytes represent
+        a readable image.
         """
 
         if not image_bytes:
@@ -105,28 +98,14 @@ class ImageProcessor:
             ) from exc
 
     @staticmethod
-    def process_image(
+    def process(
         image_bytes: bytes,
     ) -> torch.Tensor:
         """
-        Convert raw image bytes into a model-ready
-        PyTorch tensor.
+        Process an uploaded image for model inference.
 
-        Processing pipeline:
-
-            Raw bytes
-                ↓
-            PIL Image
-                ↓
-            RGB
-                ↓
-            Resize 224x224
-                ↓
-            Tensor
-                ↓
-            ImageNet normalization
-                ↓
-            Batch dimension
+        This method is kept as the primary API used by
+        the prediction route.
         """
 
         ImageProcessor.validate_image(
@@ -157,23 +136,32 @@ class ImageProcessor:
                 "Unable to process the uploaded image."
             ) from exc
 
-        # Add batch dimension:
+        # Add batch dimension.
         #
         # [3, 224, 224]
-        #
-        # becomes:
-        #
+        #       ↓
         # [1, 3, 224, 224]
 
         tensor = tensor.unsqueeze(0)
 
         logger.debug(
-            "Image processed successfully | "
-            "shape=%s",
+            "Image processed successfully | shape=%s",
             tuple(tensor.shape),
         )
 
         return tensor
+
+    @staticmethod
+    def process_image(
+        image_bytes: bytes,
+    ) -> torch.Tensor:
+        """
+        Backward-compatible alias for process().
+        """
+
+        return ImageProcessor.process(
+            image_bytes
+        )
 
 
 __all__ = [
