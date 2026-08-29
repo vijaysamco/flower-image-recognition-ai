@@ -85,6 +85,7 @@ The high-level system flow is:
                 |   Display Result     |
                 +----------------------+
 
+```
 ## 3. Frontend Architecture
 
 The frontend provides the user interface for interacting with
