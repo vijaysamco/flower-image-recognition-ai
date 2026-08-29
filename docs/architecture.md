@@ -84,3 +84,41 @@ The high-level system flow is:
                 |      Frontend        |
                 |   Display Result     |
                 +----------------------+
+
+## 3. Frontend Architecture
+
+The frontend provides the user interface for interacting with
+FlowerVision AI.
+
+Its primary responsibility is to allow users to select a flower image,
+send the image to the backend prediction API, and display the returned
+prediction.
+
+### 3.1 Frontend Responsibilities
+
+The frontend is responsible for:
+
+- Providing the flower image upload interface.
+- Supporting image selection.
+- Supporting drag-and-drop image upload.
+- Displaying an image preview before prediction.
+- Sending the image to the backend API.
+- Displaying a loading state while prediction is in progress.
+- Displaying prediction errors when a request fails.
+- Displaying the predicted flower class.
+- Displaying the prediction confidence.
+- Allowing the user to identify another flower.
+
+### 3.2 Current Frontend Structure
+
+The current frontend consists of the following files:
+
+```text
+frontend/
+├── index.html
+├── style.css
+├── app.js
+├── config.js
+└── README.md
+
+
