@@ -517,5 +517,143 @@ backend/
 └── requirements.txt
 
 ```
+### 4.13 API Endpoints
 
+FlowerVision AI exposes REST API endpoints through the FastAPI
+application.
 
+The API provides endpoints for:
+
+- Application information.
+- Backend health status.
+- Supported flower classes.
+- Flower image prediction.
+
+All API endpoints are implemented in:
+
+```text
+backend/app/api/routes.py
+```
+
+### 4.14 Prediction Service Architecture
+
+The prediction service is responsible for performing flower image
+classification using the trained MobileNetV3-Small model.
+
+The prediction pipeline is:
+
+```text
+Uploaded Image
+      |
+      v
+File Validation
+      |
+      v
+Image Processor
+      |
+      v
+Preprocessed Image
+      |
+      v
+Predictor Service
+      |
+      v
+MobileNetV3-Small Model
+      |
+      v
+Predicted Flower Class
+      |
+      v
+Confidence Score
+      |
+      v
+Prediction Response
+```
+
+### 4.15 Model Architecture and Training
+
+FlowerVision AI uses a lightweight **MobileNetV3-Small** model with
+transfer learning for flower image classification.
+
+The model was initialized with ImageNet-pretrained weights and
+adapted for the five flower classes supported by the application.
+
+#### Model Summary
+
+| Item | Details |
+|---|---|
+| Architecture | MobileNetV3-Small |
+| Learning Approach | Transfer Learning |
+| Pretrained Weights | ImageNet |
+| Training Device | CPU |
+| Training Images | 2,936 |
+| Validation Images | 734 |
+| Training Epochs | 5 |
+| Flower Classes | 5 |
+| Best Validation Accuracy | 89.92% |
+| Model File | `flower_classifier.pth` |
+| Class Mapping | `class_names.json` |
+
+#### Dataset
+
+The training dataset contains five flower categories:
+
+- Daisy
+- Dandelion
+- Rose
+- Sunflower
+- Tulip
+
+The complete prepared dataset contains **3,670 images**.
+
+#### Training Results
+
+The model achieved the following validation accuracy during training:
+
+```text
+Epoch 1: 85.69%
+Epoch 2: 88.28%
+Epoch 3: 88.96%
+Epoch 4: 89.37%
+Epoch 5: 89.92%
+
+```
+
+### 4.16 Model Inference Flow
+
+The model inference flow describes how FlowerVision AI processes an
+uploaded flower image and generates a prediction.
+
+The inference pipeline is:
+
+```text
+Uploaded Image
+      |
+      v
+File Validation
+      |
+      v
+Image Processing
+      |
+      v
+Image Tensor
+      |
+      v
+MobileNetV3-Small
+      |
+      v
+Model Output
+      |
+      v
+Class Mapping
+      |
+      v
+Flower Prediction
+      |
+      v
+Confidence Score
+      |
+      v
+API Response
+
+```
