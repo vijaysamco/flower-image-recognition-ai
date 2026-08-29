@@ -657,3 +657,17 @@ Confidence Score
 API Response
 
 ```
+### 4.17 Backend Testing Architecture
+
+FlowerVision AI uses **Pytest** to verify the functionality and
+reliability of the backend API.
+
+The backend tests are located in:
+
+```text
+backend/tests/
+tests/
+├── test_flowers.py
+├── test_health.py
+└── test_predict.py
+```
