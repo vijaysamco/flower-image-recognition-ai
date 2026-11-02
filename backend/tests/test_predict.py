@@ -6,7 +6,10 @@ Prediction API Tests
 
 from io import BytesIO
 
+import pytest
 from PIL import Image
+
+pytestmark = pytest.mark.integration
 
 
 SUPPORTED_FLOWERS = {

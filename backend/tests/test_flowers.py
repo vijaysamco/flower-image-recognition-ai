@@ -2,6 +2,10 @@
 Tests for supported flower classes endpoint.
 """
 
+import pytest
+
+pytestmark = pytest.mark.integration
+
 
 def test_supported_flowers(client):
     """

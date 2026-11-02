@@ -2,6 +2,10 @@
 Tests for health and root endpoints.
 """
 
+import pytest
+
+pytestmark = pytest.mark.integration
+
 
 def test_root_endpoint(client):
     """
