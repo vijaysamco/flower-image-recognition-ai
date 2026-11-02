@@ -58,6 +58,8 @@ Unlike a simple machine learning notebook, this repository follows software engi
 - Image validation
 - Error handling
 - Structured logging
+- Trace-linked observability metrics and logs
+- In-memory telemetry UI for request inspection
 - Modular architecture
 - Dependency Injection
 - Configuration management
